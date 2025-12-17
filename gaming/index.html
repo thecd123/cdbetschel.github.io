@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 Ultimate Arcade</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: radial-gradient(circle at top, #020617, #000);
+      color: #e5e7eb;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
+    }
+    header h1 { margin: 0; font-size: 2rem; }
+    main { padding: 40px 20px; max-width: 1100px; margin: auto; }
+    .games { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .game-card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    .game-card h2 { margin-top: 0; }
+    .game-card p { color: #9ca3af; }
+    .play-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    footer { text-align: center; padding: 20px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎮 Ultimate Arcade</h1>
+    <p>Play tons of free browser games</p>
+  </header>
+  <main>
+    <section class="games">
+      <!-- Clicker -->
+      <div class="game-card">
+        <h2>Clicker</h2>
+        <p>Click to increase your score!</p>
+        <p>Score: <span id="score">0</span></p>
+        <button class="play-btn" onclick="addPoint()">Click Me!</button>
+      </div>
+
+      <!-- Reaction -->
+      <div class="game-card">
+        <h2>Reaction Game</h2>
+        <p>Click the box when it turns green.</p>
+        <div id="reactionBox" style="height:80px;background:red;border-radius:8px;margin:10px 0"></div>
+        <button class="play-btn" onclick="startReaction()">Start</button>
+        <p id="reactionResult"></p>
+      </div>
+
+      <!-- Number Guessing -->
+      <div class="game-card">
+        <h2>Number Guess</h2>
+        <p>Guess a number from 1–10</p>
+        <input id="guessInput" type="number" min="1" max="10" style="padding:6px;border-radius:6px" />
+        <button class="play-btn" onclick="guessNumber()">Guess</button>
+        <p id="guessResult"></p>
+      </div>
+
+      <!-- Rock Paper Scissors -->
+      <div class="game-card">
+        <h2>Rock Paper Scissors</h2>
+        <p>Choose your move</p>
+        <button class="play-btn" onclick="rps('Rock')">Rock</button>
+        <button class="play-btn" onclick="rps('Paper')">Paper</button>
+        <button class="play-btn" onclick="rps('Scissors')">Scissors</button>
+        <p id="rpsResult"></p>
+      </div>
+
+      <!-- Memory Match -->
+      <div class="game-card">
+        <h2>Memory Match</h2>
+        <p>Click two cards to match them!</p>
+        <div id="memory" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px"></div>
+        <button class="play-btn" onclick="startMemory()">Start</button>
+      </div>
+
+      <!-- Snake -->
+      <div class="game-card">
+        <h2>Snake</h2>
+        <canvas id="snake" width="200" height="200" style="background:black;display:block;margin:auto"></canvas>
+        <button class="play-btn" onclick="startSnake()">Play Snake</button>
+      </div>
+
+    </section>
+  </main>
+  <footer>© 2025 Ultimate Arcade</footer>
+
+  <script>
+    // Clicker Game
+    let score = 0;
+    const scoreEl = document.getElementById('score');
+    function addPoint() { score++; scoreEl.textContent = score; }
+
+    // Reaction Game
+    let reactionTimeout;
+    const reactionBox = document.getElementById('reactionBox');
+    const reactionResult = document.getElementById('reactionResult');
+    function startReaction() {
+      reactionBox.style.background = 'red';
+      reactionResult.textContent = '';
+      clearTimeout(reactionTimeout);
+      reactionTimeout = setTimeout(()=>{
+        reactionBox.style.background='lime';
+        const start = Date.now();
+        reactionBox.onclick = ()=>{reactionResult.textContent = `${Date.now()-start} ms`; reactionBox.onclick=null;}
+      }, Math.random()*2000+1000);
+    }
+
+    // Number Guessing Game
+    const secret = Math.floor(Math.random()*10)+1;
+    const guessInput = document.getElementById('guessInput');
+    const guessResult = document.getElementById('guessResult');
+    function guessNumber() { guessResult.textContent = Number(guessInput.value)===secret?'Correct!':'Wrong'; }
+
+    // Rock Paper Scissors
+    const rpsResult = document.getElementById('rpsResult');
+    function rps(player) {
+      const choices = ['Rock','Paper','Scissors'];
+      const cpu = choices[Math.floor(Math.random()*3)];
+      let result='Tie';
+      if((player==='Rock'&&cpu==='Scissors')||(player==='Paper'&&cpu==='Rock')||(player==='Scissors'&&cpu==='Paper')) result='You Win!';
+      else if(player!==cpu) result='You Lose';
+      rpsResult.textContent = `${player} vs ${cpu} — ${result}`;
+    }
+
+    // Memory Match Game
+    const memory = document.getElementById('memory');
+    let first=null;
+    function startMemory() {
+      memory.innerHTML=''; first=null;
+      const cards=[1,1,2,2,3,3,4,4];
+      cards.sort(()=>Math.random()-0.5);
+      cards.forEach(val=>{
+        const card = document.createElement('div');
+        card.textContent='?';
+        card.style.padding='20px'; card.style.background='#111'; card.style.textAlign='center'; card.style.cursor='pointer';
+        card.onclick = ()=>{
+          card.textContent=val;
+          if(!first){first=card;} else {
+            if(first.textContent!==card.textContent){
+              setTimeout(()=>{first.textContent='?'; card.textContent='?'; first=null;},500);
+            } else { first=null; }
+          }
+        };
+        memory.appendChild(card);
+      });
+    }
+
+    // Snake Game
+    let ctx, snake, dir, food, interval;
+    const canvas = document.getElementById('snake');
+    function startSnake() {
+      ctx = canvas.getContext('2d');
+      snake=[[5,5]]; dir=[1,0]; food=[10,10]; clearInterval(interval);
+      interval = setInterval(game,200);
+      document.onkeydown=e=>{
+        if(e.key==='ArrowUp'&&dir[1]!==1) dir=[0,-1];
+        if(e.key==='ArrowDown'&&dir[1]!==-1) dir=[0,1];
+        if(e.key==='ArrowLeft'&&dir[0]!==1) dir=[-1,0];
+        if(e.key==='ArrowRight'&&dir[0]!==-1) dir=[1,0];
+      };
+    }
+    function game(){
+      ctx.clearRect(0,0,200,200);
+      const head = [snake[0][0]+dir[0], snake[0][1]+dir[1]];
+      // Collision with walls
+      if(head[0]<0||head[0]>=20||head[1]<0||head[1]>=20||snake.some(s=>s[0]===head[0]&&s[1]===head[1])){ clearInterval(interval); alert('Game Over'); return; }
+      snake.unshift(head);
+      // Eat food
+      if(head[0]===food[0]&&head[1]===food[1]){
+        food=[Math.floor(Math.random()*20), Math.floor(Math.random()*20)];
+      } else { snake.pop(); }
+      // Draw snake
+      ctx.fillStyle='lime'; snake.forEach(s=>ctx.fillRect(s[0]*10,s[1]*10,10,10));
+      // Draw food
+      ctx.fillStyle='red'; ctx.fillRect(food[0]*10,food[1]*10,10,10);
+    }
+  </script>
+</body>
+</html>
+
